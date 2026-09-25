@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Yarne Diopere, XR developer and final-year MCT student at Howest. Portfolio and CV.">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Yarne Diopere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #14111c;
+    --surface: #1d1928;
+    --surface-2: #262136;
+    --line: #352e48;
+    --text: #f3ede4;
+    --muted: #a8a0b8;
+    --accent: #ff9a4d;
+    --accent-ink: #1f1206;
+    --teal: #7fd1c7;
+    --display: "Unbounded", "Trebuchet MS", system-ui, sans-serif;
+    --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  html { background: var(--bg); }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  /* ---------- Hero / 3D scene ---------- */
+  .hero {
+    position: relative;
+    height: clamp(540px, 82vh, 800px);
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 70%, #3a2438 0%, var(--bg) 65%);
+  }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
+  #scene.hovering { cursor: pointer; }
+  .loader {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+    background: var(--bg); transition: opacity .6s ease;
+  }
+  .loader.done { opacity: 0; pointer-events: none; }
+  .overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 28px 16px 26px; }
+  .overlay > * { pointer-events: auto; }
+  .title { text-align: center; pointer-events: none; }
+  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .32em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  h1 {
+    font: 700 clamp(30px, 6vw, 58px)/1.05 var(--display);
+    letter-spacing: -.01em; margin: 0;
+    text-shadow: 0 2px 24px rgba(20, 17, 28, .7);
+  }
+  .sub { margin: 10px 0 0; color: var(--muted); font-size: 15px; text-shadow: 0 1px 12px rgba(20, 17, 28, .9); }
+  .status {
+    position: absolute; top: 16px; left: 16px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 12px; border-radius: 999px;
+    background: rgba(29, 25, 40, .75); backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
+    font: 500 11px/1.2 var(--mono); color: var(--text);
+  }
+  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(127, 209, 199, .18); }
+  .bottom { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .hint {
+    font-size: 13px; color: var(--text); margin: 0;
+    padding: 8px 16px; border-radius: 999px; background: rgba(20, 17, 28, .6); backdrop-filter: blur(6px);
+  }
+  .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 600 14px/1 var(--body); text-decoration: none; color: var(--text);
+    padding: 12px 18px; border-radius: 999px; cursor: pointer;
+    background: rgba(38, 33, 54, .85); border: 1px solid var(--line); backdrop-filter: blur(8px);
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .pill:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .pill.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .pill[aria-disabled="true"] { opacity: .5; cursor: not-allowed; transform: none; }
+  .pill small { font: 500 10px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+
+  .focus-card {
+    width: min(420px, 100%);
+    padding: 18px 20px; border-radius: 18px;
+    background: rgba(29, 25, 40, .88); backdrop-filter: blur(10px);
+    border: 1px solid var(--line);
+  }
+  .focus-card h2 { font: 600 18px/1.25 var(--display); margin: 0 0 6px; }
+  .focus-card p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .focus-card .pills { justify-content: flex-start; }
+  .focus-card .pill { padding: 10px 14px; font-size: 13px; }
+  .tip {
+    position: absolute; pointer-events: none; transform: translate(-50%, -140%);
+    font: 500 12px/1 var(--mono); padding: 7px 10px; border-radius: 8px;
+    background: var(--text); color: var(--bg); white-space: nowrap;
+  }
+  .lang {
+    position: absolute; top: 16px; right: 16px; display: flex; padding: 3px; gap: 2px; border-radius: 999px;
+    background: rgba(29, 25, 40, .75); backdrop-filter: blur(8px); border: 1px solid var(--line);
+  }
+  .lang button {
+    font: 500 11px/1 var(--mono); letter-spacing: .08em; color: var(--muted);
+    background: none; border: 0; padding: 7px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .no3d #scene, .no3d .hint { display: none; }
+
+  /* ---------- Sections ---------- */
+  main { max-width: 1080px; margin: 0 auto; padding-inline: 16px; }
+  section { padding-block: 72px 24px; }
+  .label { font: 500 12px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h2.sec { font: 600 clamp(24px, 3.4vw, 34px)/1.15 var(--display); margin: 0 0 28px; text-wrap: balance; }
+
+  .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 20px; }
+  .project {
+    display: flex; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px; overflow: hidden;
+    transition: border-color .3s ease, box-shadow .3s ease;
+  }
+  .project.flash { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255, 154, 77, .18); }
+  .media {
+    aspect-ratio: 16 / 10; max-width: 100%;
+    display: grid; place-items: center; text-align: center; padding: 16px;
+    font: 500 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    background:
+      repeating-linear-gradient(135deg, transparent 0 14px, rgba(255, 255, 255, .025) 14px 28px),
+      var(--c, var(--surface-2));
+    text-decoration: none; border-bottom: 1px solid var(--line);
+  }
+  a.media { color: var(--text); }
+  .media.shot { position: relative; padding: 0; overflow: hidden; background: #faf8fc; }
+  .media.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; display: block; }
+  .media svg { width: 70%; height: auto; }
+  .media.embed { position: relative; padding: 0; overflow: hidden; }
+  .media.embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .media.embed .load3d { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--text); background: none; border: 0; cursor: pointer; padding: 16px; }
+  .media.embed .load3d:hover { text-decoration: underline; }
+  .media.embed a { color: var(--text); text-decoration: none; padding: 16px; }
+  .copy-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .email { font: 500 15px/1 var(--mono); padding: 12px 16px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); user-select: all; overflow-wrap: anywhere; }
+  a.media:hover span { text-decoration: underline; }
+  .p-body { padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .p-body h3 { font: 600 17px/1.3 var(--display); margin: 0; }
+  .p-body p { margin: 0; color: var(--muted); font-size: 15px; }
+  .role { font-size: 14px !important; color: var(--text) !important; }
+  .role b { color: var(--teal); font-weight: 600; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px; }
+  .tag { font: 500 11px/1 var(--mono); padding: 6px 9px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+  .show3d {
+    align-self: flex-start; background: none; border: 0; padding: 0; cursor: pointer;
+    font: 600 13px/1 var(--body); color: var(--accent);
+  }
+  .show3d:hover { text-decoration: underline; }
+
+  .about { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+  .about .lead { font-size: clamp(18px, 2.2vw, 22px); line-height: 1.5; margin: 0; max-width: 30ch; }
+  .about .lead em { font-style: normal; color: var(--accent); }
+  .timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .timeline li { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .timeline li:last-child { border-bottom: 1px solid var(--line); }
+  .timeline .when { font: 500 11px/1.6 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .timeline strong { display: block; font-weight: 600; }
+  .timeline span { color: var(--muted); font-size: 14px; }
+  .timeline .next .when { color: var(--teal); }
+
+  .skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+  .skill-group h3 { font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cv-dialog {
+    width: min(860px, calc(100% - 32px)); max-height: calc(100% - 32px); padding: 0;
+    background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 20px;
+  }
+  .cv-dialog::backdrop { background: rgba(10, 8, 16, .75); backdrop-filter: blur(4px); }
+  .cv-bar {
+    position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line);
+    font: 500 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  }
+  .cv-bar .pill { padding: 9px 14px; font-size: 13px; }
+  .cv-pages { padding: 16px; display: grid; gap: 16px; }
+  .cv-pages canvas { width: 100%; height: auto; display: block; border-radius: 8px; background: #fff; }
+  .cv-pages p { margin: 24px 0; text-align: center; color: var(--muted); }
+  .langs { margin: 24px 0 0; color: var(--muted); font-size: 14px; }
+  .chip { font: 600 15px/1 var(--body); padding: 11px 15px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+
+  .cta {
+    margin-block: 72px 40px; padding: 40px 28px; border-radius: 28px; text-align: center;
+    background: radial-gradient(ellipse at 50% 0%, rgba(255, 154, 77, .22), transparent 70%), var(--surface);
+    border: 1px solid var(--line);
+  }
+  .cta h2 { font: 600 clamp(22px, 3vw, 30px)/1.25 var(--display); margin: 0 auto 10px; max-width: 22ch; text-wrap: balance; }
+  .cta p { color: var(--muted); margin: 0 0 24px; }
+  footer { text-align: center; padding: 0 16px 36px; font: 500 11px/1 var(--mono); color: var(--muted); letter-spacing: .08em; }
+
+  @media (max-width: 760px) {
+    .about { grid-template-columns: 1fr; gap: 28px; }
+    .status { top: 64px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+    .overlay { padding-top: 108px; }
+    section { padding-block: 56px 16px; }
+  }
+</style>
+
+<header class="hero" id="top">
+  <canvas id="scene" aria-label="Interactive 3D scene: a floating island with one object per project"></canvas>
+  <div class="loader" id="loader" data-i18n="loading">Loading scene…</div>
+
+  <div class="overlay">
+    <div class="status"><i></i><span data-i18n="status">Looking for an internship · Feb – Jun 2027</span></div>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="nl" aria-pressed="false">NL</button></div>
+    <div class="title">
+      <p class="eyebrow">XR Developer</p>
+      <h1>Yarne Diopere</h1>
+      <p class="sub" data-i18n="sub">Final-year MCT student · Howest Kortrijk</p>
+    </div>
+
+    <div class="bottom">
+      <div id="home-ui" class="bottom">
+        <p class="hint" data-i18n="hint">Click an object to explore a project</p>
+        <div class="pills">
+          <a class="pill primary" href="#projects" data-i18n="allProjects">See all projects</a>
+          <a class="pill" href="#about" data-i18n="aboutBtn">About me</a>
+          <a class="pill" href="#contact">Contact</a>
+        </div>
+      </div>
+      <div id="focus-ui" class="focus-card" hidden>
+        <h2 id="f-title"></h2>
+        <p id="f-text"></p>
+        <div class="pills">
+          <button class="pill primary" id="f-more" type="button" data-i18n="more">Read more ↓</button>
+          <button class="pill" id="f-back" type="button" data-i18n="back">← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tip" id="tip" hidden></div>
+</header>
+
+<main>
+  <section id="projects">
+    <p class="label" data-i18n="projLabel">Projects</p>
+    <h2 class="sec" data-i18n="projTitle">Things I built</h2>
+    <div class="projects">
+      <article class="project" id="p-xr">
+        <div class="media" style="--c:#1f3a3a" aria-hidden="true">
+          <svg viewBox="0 0 200 120" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="20" y="78" width="120" height="8" rx="2" fill="#8a5a3c"/>
+            <path d="M32 86v26M128 86v26" stroke="#8a5a3c" stroke-width="5"/>
+            <rect x="58" y="44" width="46" height="30" rx="3" fill="#262136" stroke="#7fd1c7" stroke-width="2"/>
+            <path d="M81 74v4" stroke="#262136" stroke-width="4"/>
+            <path d="M160 40c-10 0-16 8-16 18v20h32V58c0-10-6-18-16-18Z" fill="#3a3350"/>
+            <path d="M144 78v34M176 78v34" stroke="#3a3350" stroke-width="4"/>
+            <circle cx="160" cy="26" r="8" fill="none" stroke="#7fd1c7" stroke-width="2" stroke-dasharray="3 4"/>
+            <path d="M40 30l6-6 6 6M46 24v20" stroke="#ff9a4d" stroke-width="2.5"/>
+            <text x="100" y="18" fill="#7fd1c7" font-family="monospace" font-size="9" text-anchor="middle">ERGONOMIC CHECK</text>
+          </svg>
+        </div>
+        <div class="p-body">
+          <h3>Ergonomic Workspace XR</h3>
+          <p data-i18n="xrText">An XR app in Unity that tests a workplace for ergonomics.</p>
+          <p class="role" data-i18n="xrRole"><b>Team</b> · our focus: onboarding &amp; building the workspace</p>
+          <div class="tags"><span class="tag">Unity</span><span class="tag">C#</span><span class="tag">Meta XR SDK</span></div>
+          <button class="show3d" type="button" data-focus="xr" data-i18n="show3d">Show in 3D ↑</button>
+        </div>
+      </article>
+
+      <article class="project" id="p-score">
+        <div class="media shot"><img src="scoreboard.png" alt="TeamScore leaderboard: a podium for the top three players and a ranked list below" loading="lazy"></div>
+        <div class="p-body">
+          <h3>TeamScore</h3>
+          <p data-i18n="scoreText">A web scoreboard for exergames that keeps working offline.</p>
+          <p class="role" data-i18n="scoreRole"><b>Team</b> project</p>
+          <div class="tags"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">Offline-first</span></div>
+          <button class="show3d" type="button" data-focus="score" data-i18n="show3d">Show in 3D ↑</button>
+        </div>
+      </article>
+
+      <article class="project" id="p-rowhome">
+        <div class="media embed" id="row-media" style="--c:#3d2a33"><button class="load3d" type="button" id="row-load" hidden><span data-i18n="rowLoad">▶ Load the 3D model</span></button><a id="row-link" href="https://skfb.ly/pLqKn" target="_blank" rel="noopener"><span data-i18n="rowLink">View the 3D model<br>on Sketchfab ↗</span></a></div>
+        <div class="p-body">
+          <h3>Naples Rowhome</h3>
+          <p data-i18n="rowText">A rowhome from Naples, modelled in Blender and textured in Photoshop.</p>
+          <p class="role" data-i18n="rowRole"><b>Solo</b> · 3D modelling</p>
+          <div class="tags"><span class="tag">Blender</span><span class="tag">Photoshop</span><span class="tag" data-i18n="modelling">3D modelling</span></div>
+          <button class="show3d" type="button" data-focus="rowhome" data-i18n="show3d">Show in 3D ↑</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="about">
+    <p class="label" data-i18n="aboutLabel">About me</p>
+    <div class="about">
+      <div>
+        <h2 class="sec" data-i18n="aboutTitle">Hi, I'm Yarne.</h2>
+        <p class="lead" data-i18n="lead">A tech enthusiast with a passion for <em>XR</em>. When a new technology shows up, I don't let go until I've figured it out.</p>
+      </div>
+      <ol class="timeline">
+        <li class="next"><span class="when" data-i18n="tWhen1">Feb–Jun 2027</span><div><strong data-i18n="tWhat1">Internship</strong><span data-i18n="tWhere1">Looking for an XR company, open to offers</span></div></li>
+        <li><span class="when" data-i18n="tWhen2">2023 – now</span><div><strong>Multimedia &amp; Creative Technology</strong><span data-i18n="tWhere2">Howest Kortrijk · final year</span></div></li>
+        <li><span class="when">2023</span><div><strong data-i18n="tWhat4">Internship · Encima</strong><span data-i18n="tWhere4">Software company, Torhout · web &amp; app development</span></div></li>
+        <li><span class="when" data-i18n="tWhen5">2021 – now</span><div><strong data-i18n="tWhat5">Youth leader</strong><span>KSA Driekoningen, Torhout</span></div></li>
+        <li><span class="when" data-i18n="tWhen3">2017 – 2023</span><div><strong data-i18n="tWhat3">Informaticabeheer (IT management)</strong><span data-i18n="tWhere3">College Torhout · secondary school</span></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="skills">
+    <p class="label">Skills &amp; tools</p>
+    <h2 class="sec" data-i18n="skillsTitle">What I work with</h2>
+    <div class="skills">
+      <div class="skill-group"><h3>XR &amp; Game Dev</h3><div class="chips"><span class="chip">Unity</span><span class="chip">C#</span><span class="chip">OpenXR</span><span class="chip">Meta XR SDK</span><span class="chip">Passthrough</span><span class="chip">Quest 3 / 3S</span></div></div>
+      <div class="skill-group"><h3>Web</h3><div class="chips"><span class="chip">Vue.js</span><span class="chip">JavaScript</span><span class="chip">HTML / CSS</span><span class="chip">SQL</span></div></div>
+      <div class="skill-group"><h3>3D &amp; Design</h3><div class="chips"><span class="chip">Blender</span><span class="chip" data-i18n="uv">UV unwrapping</span><span class="chip">Texturing</span><span class="chip">Photoshop</span><span class="chip">Figma</span></div></div>
+      <div class="skill-group"><h3 data-i18n="sysTitle">Code &amp; systems</h3><div class="chips"><span class="chip">Python</span><span class="chip">Java</span><span class="chip">Git</span><span class="chip">TCP sockets</span><span class="chip">OpenCV</span></div></div>
+    </div>
+    <p class="langs"><span data-i18n="langs">Dutch (native) · English (fluent) · French (good)</span></p>
+  </section>
+
+  <section class="cta" id="contact">
+    <h2 data-i18n="ctaTitle">Looking for an XR intern from February to June 2027?</h2>
+    <p data-i18n="ctaText">Let's talk.</p>
+    <div class="copy-row">
+      <span class="email" id="email">yarnediopere@gmail.com</span>
+      <button class="pill primary" id="copy" type="button" data-i18n="copy">Copy email</button>
+    </div>
+    <div class="pills">
+      <a class="pill" href="https://www.linkedin.com/in/yarne-diopere/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="pill" href="https://github.com/YarneDiopere" target="_blank" rel="noopener">GitHub ↗</a>
+      <a class="pill" href="https://sketchfab.com/YarneDiopere" target="_blank" rel="noopener">Sketchfab ↗</a>
+      <a class="pill primary" id="cv" href="CV_Yarne_Diopere_EN.pdf"><span data-i18n="cv">View CV</span></a>
+    </div>
+  </section>
+</main>
+<dialog class="cv-dialog" id="cv-dialog" aria-labelledby="cv-label">
+  <div class="cv-bar"><span id="cv-label">CV · Yarne Diopere</span><span class="pills"><a class="pill primary" id="cv-dl" href="CV_Yarne_Diopere_EN.pdf" download hidden data-i18n="save">Save PDF</a><button class="pill" type="button" id="cv-close" data-i18n="close">Close</button></span></div>
+  <div class="cv-pages" id="cv-pages"></div>
+</dialog>
+<footer>© 2026 Yarne Diopere</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+(() => {
+  const hero = document.getElementById('top');
+  const canvas = document.getElementById('scene');
+  const loader = document.getElementById('loader');
+  const tip = document.getElementById('tip');
+  const homeUI = document.getElementById('home-ui');
+  const focusUI = document.getElementById('focus-ui');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const PROJECTS = {
+    xr:      { title: 'Ergonomic Workspace XR', text: { en: 'An XR app in Unity that tests a workplace for ergonomics. Team project.', nl: 'Een XR-app in Unity die een werkplek test op ergonomie. Teamproject.' }, offset: [-2.6, 1.6, 3.6] },
+    score:   { title: 'TeamScore',              text: { en: 'A web scoreboard for exergames that keeps working offline. Team project.', nl: 'Een webscoreboard voor exergames dat ook offline werkt. Teamproject.' }, offset: [2.2, 1.4, 3.4] },
+    rowhome: { title: 'Naples Rowhome',         text: { en: 'A rowhome from Naples, modelled in Blender. Solo project.', nl: 'Een rijhuis uit Napels, gemodelleerd in Blender. Soloproject.' }, offset: [0.4, 1.6, 5.2] },
+  };
+
+  function fail() { hero.classList.add('no3d'); loader.classList.add('done'); }
+  if (!window.THREE) return fail();
+
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) { return fail(); }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x14111c);
+  scene.fog = new THREE.Fog(0x14111c, 20, 42);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 120);
+
+  const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, flatShading: true, roughness: .85, ...extra });
+  const mesh = (geo, material, x = 0, y = 0, z = 0) => {
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+    return m;
+  };
+
+  // Lights: cool moonlight + warm lamp, like a campfire at night
+  scene.add(new THREE.HemisphereLight(0x9a8cff, 0x3a2418, 1.1));
+  const moon = new THREE.DirectionalLight(0xc9ceff, 1.6);
+  moon.position.set(-6, 10, 6); moon.castShadow = true;
+  moon.shadow.mapSize.set(1024, 1024);
+  Object.assign(moon.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 });
+  scene.add(moon);
+
+  // Floating island
+  const island = new THREE.Group();
+  scene.add(island);
+  island.add(mesh(new THREE.CylinderGeometry(5.4, 5.0, 0.6, 9), mat(0x4f8a5c), 0, 0, 0));
+  const under = mesh(new THREE.ConeGeometry(5.0, 3.8, 9), mat(0x6b4636), 0, -2.2, 0);
+  under.rotation.x = Math.PI; island.add(under);
+  [[3.9, -1.6, 2.8], [-3.2, -2.4, 1.5], [0.5, -2.8, -3.8]].forEach(([x, y, z]) =>
+    island.add(mesh(new THREE.DodecahedronGeometry(0.6), mat(0x5a3b2e), x, y, z)));
+  [[4.2, 0.35, 1.6, .35], [-1.4, 0.35, 3.8, .25], [-4.4, 0.35, -0.4, .3]].forEach(([x, y, z, s]) =>
+    island.add(mesh(new THREE.DodecahedronGeometry(s), mat(0x8c8398), x, y, z)));
+
+  function tree(x, z, s = 1) {
+    const g = new THREE.Group();
+    g.add(mesh(new THREE.CylinderGeometry(.12, .16, .8, 6), mat(0x5b3a29), 0, .4, 0));
+    g.add(mesh(new THREE.ConeGeometry(.8, 1.3, 7), mat(0x2f6b4f), 0, 1.2, 0));
+    g.add(mesh(new THREE.ConeGeometry(.6, 1.0, 7), mat(0x3b7d5b), 0, 1.8, 0));
+    g.position.set(x, .3, z); g.scale.setScalar(s);
+    island.add(g);
+  }
+  tree(-3.4, -2.6, 1.1); tree(3.7, -1.2, .9); tree(-4.1, 1.9, .8); tree(2.6, -3.6, .75);
+
+  // Lamp post with warm light
+  const lamp = new THREE.Group();
+  lamp.add(mesh(new THREE.CylinderGeometry(.06, .08, 2.2, 6), mat(0x2b2638), 0, 1.1, 0));
+  lamp.add(mesh(new THREE.SphereGeometry(.2, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffc78a, emissive: 0xff9a4d, emissiveIntensity: 2.2 }), 0, 2.3, 0));
+  const warm = new THREE.PointLight(0xff9a4d, 28, 12, 2);
+  warm.position.set(0, 2.3, 0); warm.castShadow = true;
+  lamp.add(warm);
+  lamp.position.set(-0.4, .3, 2.7);
+  island.add(lamp);
+
+  // ---- Project objects (placeholders — swap for .glb models later) ----
+  const clickables = [];
+  function project(id, group) {
+    group.userData.id = id;
+    group.userData.baseY = group.position.y;
+    island.add(group);
+    clickables.push(group);
+    PROJECTS[id].group = group;
+  }
+
+  // XR headset on a glowing pedestal → Ergonomic Workspace XR
+  {
+    const g = new THREE.Group();
+    g.add(mesh(new THREE.CylinderGeometry(.7, .85, .8, 8), mat(0x2d2840), 0, .4, 0));
+    const ring = mesh(new THREE.TorusGeometry(.95, .045, 8, 48), new THREE.MeshStandardMaterial({ color: 0x7fd1c7, emissive: 0x7fd1c7, emissiveIntensity: 1.6 }), 0, .85, 0);
+    ring.rotation.x = Math.PI / 2; g.add(ring);
+    const hs = new THREE.Group();
+    hs.add(mesh(new THREE.BoxGeometry(1.1, .56, .62), mat(0xebe6f2, { roughness: .5 })));
+    hs.add(mesh(new THREE.BoxGeometry(1.0, .46, .08), new THREE.MeshStandardMaterial({ color: 0x1a1626, emissive: 0x2f6f69, emissiveIntensity: .8, roughness: .2 }), 0, 0, .34));
+    const strap = mesh(new THREE.TorusGeometry(.6, .07, 6, 24, Math.PI), mat(0x3a3350));
+    strap.rotation.set(Math.PI / 2, 0, Math.PI); strap.position.z = -.05; hs.add(strap);
+    hs.position.y = 1.75; hs.rotation.y = .5;
+    g.add(hs); g.userData.spin = hs;
+    const glow = new THREE.PointLight(0x7fd1c7, 6, 4, 2); glow.position.y = 1.3; g.add(glow);
+    g.position.set(-2.5, .3, .5);
+    project('xr', g);
+  }
+
+  // Desk + monitor with a live leaderboard → Exergame Scoreboard
+  {
+    const g = new THREE.Group();
+    const wood = mat(0x8a5a3c);
+    g.add(mesh(new THREE.BoxGeometry(2.3, .12, 1.1), wood, 0, 1.0, 0));
+    [[-1.05, -.45], [1.05, -.45], [-1.05, .45], [1.05, .45]].forEach(([x, z]) => g.add(mesh(new THREE.BoxGeometry(.1, 1.0, .1), wood, x, .5, z)));
+    g.add(mesh(new THREE.BoxGeometry(.12, .4, .12), mat(0x2b2638), 0, 1.26, -.2));
+    g.add(mesh(new THREE.BoxGeometry(1.45, 1.08, .08), mat(0x2b2638), 0, 1.95, -.2));
+
+    const c = document.createElement('canvas'); c.width = 512; c.height = 288;
+    const x = c.getContext('2d');
+    x.fillStyle = '#120f1c'; x.fillRect(0, 0, 512, 288);
+    x.fillStyle = '#7fd1c7'; x.font = '600 22px monospace'; x.fillText('EXERGAME · LEADERBOARD', 28, 44);
+    x.fillStyle = '#6fbf73'; x.beginPath(); x.arc(462, 37, 7, 0, 7); x.fill();
+    [['1', 'TEAM ORANGE', '2480'], ['2', 'THE SQUATTERS', '2215'], ['3', 'JUMP SQUAD', '1930'], ['4', 'PLAYER 4', '1605']].forEach(([r, n, s], i) => {
+      const y = 96 + i * 48;
+      x.fillStyle = i === 0 ? '#ff9a4d' : '#f3ede4'; x.font = '600 24px monospace';
+      x.fillText(r, 28, y); x.fillText(n, 70, y);
+      x.textAlign = 'right'; x.fillText(s, 484, y); x.textAlign = 'left';
+    });
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const screen = new THREE.MeshBasicMaterial({ map: tex });
+    g.add(mesh(new THREE.PlaneGeometry(1.33, .95), screen, 0, 1.95, -.155));
+    new THREE.TextureLoader().load('scoreboard.png', img => { img.colorSpace = THREE.SRGBColorSpace; screen.map = img; screen.needsUpdate = true; });
+    g.add(mesh(new THREE.BoxGeometry(.9, .04, .3), mat(0x3a3350), 0, 1.08, .25));
+
+    const db = new THREE.Group();
+    const iron = mat(0x3a3350, { roughness: .4, metalness: .4 });
+    const bar = mesh(new THREE.CylinderGeometry(.04, .04, .7, 6), iron); bar.rotation.z = Math.PI / 2; db.add(bar);
+    [-.3, .3].forEach(dx => { const p = mesh(new THREE.CylinderGeometry(.16, .16, .12, 8), mat(0xff9a4d)); p.rotation.z = Math.PI / 2; p.position.x = dx; db.add(p); });
+    db.position.set(1.5, .16, .8); db.rotation.y = .6; g.add(db);
+
+    g.position.set(1.9, .3, 1.2); g.rotation.y = -.5;
+    project('score', g);
+  }
+
+  // Two Neapolitan rowhomes → Naples Rowhome
+  {
+    const g = new THREE.Group();
+    const shutter = mat(0x3d6b5a), dark = mat(0x201a2c);
+    function house(w, h, color, dx) {
+      const hg = new THREE.Group();
+      hg.add(mesh(new THREE.BoxGeometry(w, h, 1.2), mat(color), 0, h / 2, 0));
+      hg.add(mesh(new THREE.BoxGeometry(w + .12, .12, 1.32), mat(0xf1e3cf), 0, h + .06, 0));
+      for (let fy = 1.05; fy < h - .3; fy += .85) {
+        hg.add(mesh(new THREE.BoxGeometry(.34, .5, .04), dark, 0, fy, .61));
+        hg.add(mesh(new THREE.BoxGeometry(.14, .5, .05), shutter, -.25, fy, .62));
+        hg.add(mesh(new THREE.BoxGeometry(.14, .5, .05), shutter, .25, fy, .62));
+        hg.add(mesh(new THREE.BoxGeometry(.6, .05, .22), mat(0x2b2638), 0, fy - .27, .7));
+      }
+      hg.add(mesh(new THREE.BoxGeometry(.42, .7, .04), mat(0x5b3a29), 0, .35, .61));
+      hg.position.x = dx;
+      g.add(hg);
+    }
+    house(1.3, 3.0, 0xe0a458, 0);
+    house(1.1, 2.55, 0xd9786a, 1.2);
+    // washing line between the houses
+    const line = mesh(new THREE.BoxGeometry(1.2, .015, .015), mat(0xf3ede4), .6, 2.35, .9); g.add(line);
+    [[.3, 0xf3ede4], [.6, 0x7fd1c7], [.88, 0xff9a4d]].forEach(([lx, col]) => g.add(mesh(new THREE.BoxGeometry(.18, .26, .02), mat(col), lx, 2.2, .9)));
+    g.position.set(-.3, .3, -2.4);
+    project('rowhome', g);
+  }
+
+  // Sky: stars + a few drifting fireflies
+  {
+    const n = 500, pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const r = 30 + Math.random() * 10, t = Math.random() * Math.PI * 2, p = Math.acos(Math.random() * 2 - 1);
+      pos.set([r * Math.sin(p) * Math.cos(t), Math.abs(r * Math.cos(p)) - 4, r * Math.sin(p) * Math.sin(t)], i * 3);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xd8d0ff, size: .12, sizeAttenuation: true })));
+  }
+  const flies = (() => {
+    const n = 36, pos = new Float32Array(n * 3), seed = [];
+    for (let i = 0; i < n; i++) { seed.push([Math.random() * 6.28, 1.5 + Math.random() * 4, .5 + Math.random() * 2.5]); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const pts = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffc78a, size: .09, transparent: true, opacity: .9 }));
+    scene.add(pts);
+    return { pos, seed, g };
+  })();
+
+  // ---- Camera & interaction ----
+  const HOME_POS = new THREE.Vector3(0, 6.2, 13.5), HOME_TARGET = new THREE.Vector3(0, 1.2, 0);
+  const camPos = HOME_POS.clone(), camTarget = HOME_TARGET.clone();
+  const wantPos = HOME_POS.clone(), wantTarget = HOME_TARGET.clone();
+  let focused = null, hovered = null, homeScale = 1;
+  const pointer = new THREE.Vector2(0, 0), ray = new THREE.Raycaster();
+
+  function resize() {
+    const w = hero.clientWidth, h = hero.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    homeScale = camera.aspect < .8 ? 1.55 : camera.aspect < 1.2 ? 1.2 : 1;
+  }
+  new ResizeObserver(resize).observe(hero); resize();
+
+  function pick(ev) {
+    const r = canvas.getBoundingClientRect();
+    pointer.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(pointer, camera);
+    const hit = ray.intersectObjects(clickables, true)[0];
+    let o = hit && hit.object;
+    while (o && !o.userData.id) o = o.parent;
+    return o || null;
+  }
+
+  canvas.addEventListener('pointermove', ev => {
+    hovered = pick(ev);
+    canvas.classList.toggle('hovering', !!hovered);
+    if (hovered && !focused && ev.pointerType === 'mouse') {
+      const r = hero.getBoundingClientRect();
+      tip.textContent = PROJECTS[hovered.userData.id].title;
+      tip.style.left = (ev.clientX - r.left) + 'px'; tip.style.top = (ev.clientY - r.top) + 'px';
+      tip.hidden = false;
+    } else tip.hidden = true;
+  });
+  canvas.addEventListener('pointerleave', () => { hovered = null; tip.hidden = true; });
+  canvas.addEventListener('click', ev => { const o = pick(ev); if (o) focus(o.userData.id); });
+
+  function focus(id) {
+    const p = PROJECTS[id]; focused = id;
+    const wp = p.group.getWorldPosition(new THREE.Vector3());
+    wantTarget.copy(wp).add(new THREE.Vector3(0, 1.3, 0));
+    wantPos.copy(wp).add(new THREE.Vector3(...p.offset).multiplyScalar(homeScale > 1 ? 1.35 : 1));
+    document.getElementById('f-title').textContent = p.title;
+    window.refreshFocus = () => { document.getElementById('f-text').textContent = p.text[window.LANG || 'en']; };
+    window.refreshFocus();
+    homeUI.hidden = true; focusUI.hidden = false; tip.hidden = true;
+  }
+  function home() {
+    focused = null;
+    wantTarget.copy(HOME_TARGET);
+    homeUI.hidden = false; focusUI.hidden = true;
+  }
+  document.getElementById('f-back').addEventListener('click', home);
+  document.getElementById('f-more').addEventListener('click', () => {
+    const card = document.getElementById('p-' + focused);
+    card.scrollIntoView({ block: 'center' });
+    card.classList.add('flash'); setTimeout(() => card.classList.remove('flash'), 1600);
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && focused) home(); });
+  document.querySelectorAll('[data-focus]').forEach(b => b.addEventListener('click', () => {
+    hero.scrollIntoView(); focus(b.dataset.focus);
+  }));
+
+  // Render only while the hero is on screen
+  let visible = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(hero);
+
+  const clock = new THREE.Clock();
+  let first = true;
+  function tick() {
+    requestAnimationFrame(tick);
+    if (!visible && !first) return;
+    const t = clock.getElapsedTime();
+
+    if (!focused) {
+      const drift = reduced ? 0 : Math.sin(t * .15) * 1.2;
+      wantPos.copy(HOME_POS).multiplyScalar(homeScale);
+      wantPos.x += drift + pointer.x * 1.2;
+      wantPos.y += pointer.y * .6;
+    }
+    const k = reduced ? 1 : .05;
+    camPos.lerp(wantPos, k); camTarget.lerp(wantTarget, k);
+    camera.position.copy(camPos); camera.lookAt(camTarget);
+
+    if (!reduced) {
+      island.position.y = Math.sin(t * .6) * .12;
+      const hs = PROJECTS.xr.group.userData.spin;
+      hs.position.y = 1.75 + Math.sin(t * 1.6) * .08; hs.rotation.y = .5 + Math.sin(t * .5) * .4;
+      warm.intensity = 26 + Math.sin(t * 7) * 1.5 + Math.sin(t * 13) * 1;
+      for (let i = 0; i < flies.seed.length; i++) {
+        const [a, h, r] = flies.seed[i], ang = a + t * .12 * (i % 2 ? 1 : -1);
+        flies.pos.set([Math.cos(ang) * (r + 2), h + Math.sin(t + a) * .3, Math.sin(ang) * (r + 2)], i * 3);
+      }
+      flies.g.attributes.position.needsUpdate = true;
+    }
+    clickables.forEach(g => {
+      const s = (g === hovered && !focused) || g.userData.id === focused ? 1.07 : 1;
+      g.scale.lerp(new THREE.Vector3(s, s, s), .15);
+    });
+
+    renderer.render(scene, camera);
+    if (first) { first = false; loader.classList.add('done'); }
+  }
+  tick();
+})();
+</script>
+<script>
+  document.getElementById('copy').addEventListener('click', e => {
+    const btn = e.currentTarget, email = document.getElementById('email');
+    const done = t => { btn.textContent = t; setTimeout(() => btn.textContent = I18N[LANG].copy, 1800); };
+    try {
+      navigator.clipboard.writeText(email.textContent).then(() => done(I18N[LANG].copied), () => { getSelection().selectAllChildren(email); done(I18N[LANG].selected); });
+    } catch (err) { getSelection().selectAllChildren(email); done(I18N[LANG].selected); }
+  });
+</script>
+<script>
+  const I18N = {
+    en: {
+      loading: 'Loading scene…', status: 'Looking for an internship · Feb – Jun 2027', sub: 'Final-year MCT student · Howest Kortrijk',
+      hint: 'Click an object to explore a project', allProjects: 'See all projects', aboutBtn: 'About me', more: 'Read more ↓', back: '← Back',
+      projLabel: 'Projects', projTitle: 'Things I built', show3d: 'Show in 3D ↑', modelling: '3D modelling',
+      xrText: 'An XR app in Unity that tests a workplace for ergonomics.', xrRole: '<b>Team</b> · our focus: onboarding &amp; building the workspace',
+      scoreText: 'A web scoreboard for exergames that keeps working offline.', scoreRole: '<b>Team</b> project',
+      rowLink: 'View the 3D model<br>on Sketchfab ↗', rowText: 'A rowhome from Naples, modelled in Blender and textured in Photoshop.', rowRole: '<b>Solo</b> · 3D modelling',
+      aboutLabel: 'About me', aboutTitle: "Hi, I'm Yarne.",
+      lead: "A tech enthusiast with a passion for <em>XR</em>. When a new technology shows up, I don't let go until I've figured it out.",
+      tWhen1: 'Feb–Jun 2027', tWhat1: 'Internship', tWhere1: 'Looking for an XR company, open to offers',
+      tWhen2: '2023 – now', tWhere2: 'Howest Kortrijk · final year',
+      tWhen3: '2017 – 2023', tWhat3: 'Informaticabeheer (IT management)', tWhere3: 'College Torhout · secondary school',
+      skillsTitle: 'What I work with', ctaTitle: 'Looking for an XR intern from February to June 2027?', ctaText: "Let's talk.",
+      tWhat4: 'Internship · Encima', tWhere4: 'Software company, Torhout · web &amp; app development', tWhen5: '2021 – now', tWhat5: 'Youth leader',
+      uv: 'UV unwrapping', sysTitle: 'Code &amp; systems', langs: 'Dutch (native) · English (fluent) · French (good)',
+      close: 'Close', save: 'Save PDF', rowLoad: '▶ Load the 3D model', cvLoading: 'Loading CV…', cvError: 'The CV could not be loaded.',
+      copy: 'Copy email', copied: 'Copied', selected: 'Selected, press Ctrl+C', soon: 'soon', cv: 'View CV'
+    },
+    nl: {
+      loading: 'Scène laden…', status: 'Op zoek naar een stage · feb – jun 2027', sub: 'Laatstejaars MCT · Howest Kortrijk',
+      hint: 'Klik op een object om een project te ontdekken', allProjects: 'Alle projecten', aboutBtn: 'Over mij', more: 'Meer lezen ↓', back: '← Terug',
+      projLabel: 'Projecten', projTitle: 'Wat ik maakte', show3d: 'Toon in 3D ↑', modelling: '3D-modelleren',
+      xrText: 'Een XR-app in Unity die een werkplek test op ergonomie.', xrRole: '<b>Team</b> · onze focus: onboarding &amp; de werkplek bouwen',
+      scoreText: 'Een webscoreboard voor exergames dat ook offline werkt.', scoreRole: '<b>Team</b>project',
+      rowLink: 'Bekijk het 3D-model<br>op Sketchfab ↗', rowText: 'Een rijhuis uit Napels, gemodelleerd in Blender en getextureerd in Photoshop.', rowRole: '<b>Solo</b> · 3D-modelleren',
+      aboutLabel: 'Over mij', aboutTitle: 'Hoi, ik ben Yarne.',
+      lead: 'Tech-enthousiast met een passie voor <em>XR</em>. Een echte vastbijter: duikt er nieuwe technologie op, dan laat ik niet los tot ik ze doorheb.',
+      tWhen1: 'feb–jun 2027', tWhat1: 'Stage', tWhere1: 'Op zoek naar een XR-bedrijf, open voor voorstellen',
+      tWhen2: '2023 – nu', tWhere2: 'Howest Kortrijk · laatste jaar',
+      tWhen3: '2017 – 2023', tWhat3: 'Informaticabeheer', tWhere3: 'College Torhout · secundair onderwijs',
+      skillsTitle: 'Waar ik mee werk', ctaTitle: 'Zoek je een XR-stagiair van februari tot juni 2027?', ctaText: 'Laten we praten.',
+      tWhat4: 'Stage · Encima', tWhere4: 'Softwarebedrijf, Torhout · web- en appontwikkeling', tWhen5: '2021 – nu', tWhat5: 'Jeugdleider',
+      uv: 'UV-unwrapping', sysTitle: 'Code &amp; systemen', langs: 'Nederlands (moedertaal) · Engels (vloeiend) · Frans (goed)',
+      close: 'Sluiten', save: 'PDF opslaan', rowLoad: '▶ Laad het 3D-model', cvLoading: 'Cv laden…', cvError: 'Het cv kon niet geladen worden.',
+      copy: 'Kopieer e-mail', copied: 'Gekopieerd', selected: 'Geselecteerd, druk Ctrl+C', soon: 'binnenkort', cv: 'Bekijk cv'
+    }
+  };
+  let LANG = 'en';
+  function setLang(l) {
+    LANG = window.LANG = l;
+    document.documentElement.lang = l;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = I18N[l][el.dataset.i18n]; });
+    document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === l));
+    document.getElementById('cv').href = document.getElementById('cv-dl').href = l === 'nl' ? 'CV_Yarne_Diopere_NL.pdf' : 'CV_Yarne_Diopere_EN.pdf';
+    if (window.refreshFocus && !document.getElementById('focus-ui').hidden) window.refreshFocus();
+    try { localStorage.setItem('lang', l); } catch (e) {}
+  }
+  document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+  let saved = null;
+  try { saved = localStorage.getItem('lang'); } catch (e) {}
+  setLang(saved || ((navigator.language || '').toLowerCase().startsWith('nl') ? 'nl' : 'en'));
+</script>
+<script>
+  // Render the CV with PDF.js inside the page: the artifact viewer blocks opening files in a new tab.
+  (() => {
+    const dlg = document.getElementById('cv-dialog'), pages = document.getElementById('cv-pages');
+    const CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+    let lib;
+    const load = src => new Promise((ok, no) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = no; document.head.appendChild(el); });
+    const getLib = () => lib || (lib = load(CDN + 'pdf.min.js').then(() => load(CDN + 'pdf.worker.min.js')).then(() => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'pdf.worker.min.js';
+      return window.pdfjsLib;
+    }));
+
+    document.getElementById('cv').addEventListener('click', async e => {
+      e.preventDefault();
+      const url = e.currentTarget.getAttribute('href');
+      pages.innerHTML = '<p>' + I18N[LANG].cvLoading + '</p>';
+      dlg.showModal();
+      try {
+        const pdfjs = await getLib();
+        const data = await (await fetch(url)).arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data }).promise;
+        pages.innerHTML = '';
+        const width = pages.clientWidth - 32;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const base = page.getViewport({ scale: 1 });
+          const vp = page.getViewport({ scale: (width / base.width) * Math.min(devicePixelRatio || 1, 2) });
+          const c = document.createElement('canvas');
+          c.width = vp.width; c.height = vp.height;
+          c.setAttribute('aria-label', 'CV page ' + i);
+          pages.appendChild(c);
+          await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        }
+      } catch (err) {
+        pages.innerHTML = '<p>' + I18N[LANG].cvError + '</p>';
+      }
+    });
+    document.getElementById('cv-close').addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  })();
+</script>
+<script>
+  // Sketchfab embeds and file downloads only work when the site runs on its own domain,
+  // not inside a viewer frame (like the Claude artifact preview). There we fall back to links.
+  (() => {
+    let framed = true;
+    try { framed = window.self !== window.top; } catch (e) {}
+    const dl = document.getElementById('cv-dl');
+    if (framed) {
+      // Inside the Claude viewer: save through the platform's download prompt.
+      if (!window.claude || !window.claude.use) return;
+      window.claude.use('downloads').then(downloads => {
+        if (!downloads) return;
+        dl.hidden = false;
+        dl.addEventListener('click', async e => {
+          e.preventDefault();
+          const file = dl.getAttribute('href');
+          try {
+            const blob = await (await fetch(file)).blob();
+            await downloads.save({ filename: file, data: blob });
+          } catch (err) {
+            if (err && ['unavailable', 'not_granted', 'capability_disabled', 'capability_removed'].includes(err.code)) dl.hidden = true;
+          }
+        });
+      });
+      return;
+    }
+    dl.hidden = false;
+    const load = document.getElementById('row-load');
+    load.hidden = false;
+    document.getElementById('row-link').hidden = true;
+    load.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = 'https://sketchfab.com/models/6129497d24064ab68ac6ff03a28832f7/embed?autostart=1&ui_theme=dark&dnt=1';
+      f.title = 'Naples Rowhome, 3D model on Sketchfab';
+      f.allow = 'autoplay; fullscreen; xr-spatial-tracking';
+      f.allowFullscreen = true;
+      document.getElementById('row-media').replaceChildren(f);
+    });
+  })();
+</script>
+
+</html>
