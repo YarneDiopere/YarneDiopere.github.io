@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Yarne Diopere, XR developer and final-year MCT student at Howest. Portfolio and CV.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Yarne Diopere</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -320,7 +321,7 @@
       <div class="skill-group"><h3>XR &amp; Game Dev</h3><div class="chips"><span class="chip">Unity</span><span class="chip">C#</span><span class="chip">OpenXR</span><span class="chip">Meta XR SDK</span><span class="chip">Passthrough</span><span class="chip">Quest 3 / 3S</span></div></div>
       <div class="skill-group"><h3>Web</h3><div class="chips"><span class="chip">Vue.js</span><span class="chip">JavaScript</span><span class="chip">HTML / CSS</span><span class="chip">SQL</span></div></div>
       <div class="skill-group"><h3>3D &amp; Design</h3><div class="chips"><span class="chip">Blender</span><span class="chip" data-i18n="uv">UV unwrapping</span><span class="chip">Texturing</span><span class="chip">Photoshop</span><span class="chip">Figma</span></div></div>
-      <div class="skill-group"><h3 data-i18n="sysTitle">Code &amp; systems</h3><div class="chips"><span class="chip">Python</span><span class="chip">Java</span><span class="chip">Git</span><span class="chip">Docker</span><span class="chip">TCP sockets</span><span class="chip">OpenCV</span></div></div>
+      <div class="skill-group"><h3 data-i18n="sysTitle">Code &amp; systems</h3><div class="chips"><span class="chip">Python</span><span class="chip">Java</span><span class="chip">Git</span><span class="chip">Docker</span><span class="chip">Linux</span><span class="chip">TCP sockets</span><span class="chip">OpenCV</span></div></div>
       <div class="skill-group"><h3>Hardware</h3><div class="chips"><span class="chip">Arduino</span><span class="chip">Raspberry Pi</span></div></div>
     </div>
     <p class="langs"><span data-i18n="langs">Dutch (native) · English (fluent) · French (good)</span></p>
@@ -347,8 +348,22 @@
 </dialog>
 <footer>© 2026 Yarne Diopere</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
 <script>
+  // If the 3D libraries can't load, show the page without the scene instead of a spinner.
+  setTimeout(() => {
+    const l = document.getElementById('loader');
+    if (!l.classList.contains('done')) { document.getElementById('top').classList.add('no3d'); l.classList.add('done'); }
+  }, 12000);
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 (() => {
   const hero = document.getElementById('top');
   const canvas = document.getElementById('scene');
@@ -365,7 +380,6 @@
   };
 
   function fail() { hero.classList.add('no3d'); loader.classList.add('done'); }
-  if (!window.THREE) return fail();
 
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) { return fail(); }
@@ -513,6 +527,21 @@
     [[.3, 0xf3ede4], [.6, 0x7fd1c7], [.88, 0xff9a4d]].forEach(([lx, col]) => g.add(mesh(new THREE.BoxGeometry(.18, .26, .02), mat(col), lx, 2.2, .9)));
     g.position.set(-.3, .3, -2.4);
     project('rowhome', g);
+
+    // Swap the placeholder for the real Blender model once it has loaded
+    new GLTFLoader().load('rowhomes.glb', gltf => {
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+      model.position.set(-center.x, -box.min.y, -center.z);
+      model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+      const holder = new THREE.Group();
+      holder.add(model);
+      holder.scale.setScalar(2.4 / size.y);
+      holder.position.set(.6, 0, -.3);
+      g.clear();
+      g.add(holder);
+    });
   }
 
   // Sky: stars + a few drifting fireflies
