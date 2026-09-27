@@ -363,7 +363,6 @@
 </script>
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 (() => {
   const hero = document.getElementById('top');
   const canvas = document.getElementById('scene');
@@ -527,21 +526,6 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     [[.3, 0xf3ede4], [.6, 0x7fd1c7], [.88, 0xff9a4d]].forEach(([lx, col]) => g.add(mesh(new THREE.BoxGeometry(.18, .26, .02), mat(col), lx, 2.2, .9)));
     g.position.set(-.3, .3, -2.4);
     project('rowhome', g);
-
-    // Swap the placeholder for the real Blender model once it has loaded
-    new GLTFLoader().load('rowhomes.glb', gltf => {
-      const model = gltf.scene;
-      const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
-      model.position.set(-center.x, -box.min.y, -center.z);
-      model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-      const holder = new THREE.Group();
-      holder.add(model);
-      holder.scale.setScalar(2.4 / size.y);
-      holder.position.set(.6, 0, -.3);
-      g.clear();
-      g.add(holder);
-    });
   }
 
   // Sky: stars + a few drifting fireflies
