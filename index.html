@@ -141,7 +141,8 @@
   .media.shot { position: relative; padding: 0; overflow: hidden; background: #faf8fc; }
   .media.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; display: block; }
   .media svg { width: 70%; height: auto; }
-  .media.icon img { width: 34%; max-width: 150px; height: auto; border-radius: 22%; box-shadow: 0 12px 30px rgba(0, 0, 0, .4); }
+  .media.shot.map { background: #e9dba9; }
+  .media.shot.map img { object-position: 50% 50%; }
   .plink { align-self: flex-start; font: 600 13px/1 var(--body); color: var(--accent); text-decoration: none; }
   .plink:hover { text-decoration: underline; }
   .media.embed { position: relative; padding: 0; overflow: hidden; }
@@ -288,13 +289,14 @@
       </article>
 
       <article class="project" id="p-stad">
-        <a class="media icon" style="--c:#1f2f3d" href="https://yarnediopere.github.io/stadsspel/" target="_blank" rel="noopener"><img src="stadsspel.png" alt="Stadsspel app icon" loading="lazy"></a>
+        <a class="media shot map" href="https://yarnediopere.github.io/stadsspel/" target="_blank" rel="noopener"><img src="stadsspel-map.webp" alt="Stadsspel map of Torhout divided into zones, with one zone captured by the red team and one by the blue team" loading="lazy"></a>
         <div class="p-body">
           <h3>Stadsspel</h3>
           <p data-i18n="stadText">A Risk-style city game: teams conquer zones in the city centre by completing challenges and sending in photo proof.</p>
           <p class="role" data-i18n="stadRole"><b>Built for</b> my youth movement, KSA</p>
           <div class="tags"><span class="tag">JavaScript</span><span class="tag">Firebase</span><span class="tag">PWA</span><span class="tag">GPS</span><span class="tag">Push</span></div>
           <a class="plink" href="https://yarnediopere.github.io/stadsspel/" target="_blank" rel="noopener" data-i18n="stadLink">Open the app ↗</a>
+          <button class="show3d" type="button" data-focus="stad" data-i18n="show3d">Show in 3D ↑</button>
         </div>
       </article>
 
@@ -390,6 +392,7 @@ import * as THREE from 'three';
     xr:      { title: 'Ergonomic Workspace XR', text: { en: 'An XR app in Unity that tests a workplace for ergonomics. Team project.', nl: 'Een XR-app in Unity die een werkplek test op ergonomie. Teamproject.' }, offset: [-2.6, 1.6, 3.6] },
     score:   { title: 'TeamScore',              text: { en: 'A web scoreboard for exergames that keeps working offline. Team project.', nl: 'Een webscoreboard voor exergames dat ook offline werkt. Teamproject.' }, offset: [2.2, 1.4, 3.4] },
     rowhome: { title: 'Naples Rowhome',         text: { en: 'A rowhome from Naples, modelled in Blender. Solo project.', nl: 'Een rijhuis uit Napels, gemodelleerd in Blender. Soloproject.' }, offset: [0.4, 1.6, 5.2] },
+    stad:    { title: 'Stadsspel',              text: { en: 'A Risk-style city game for my youth movement: conquer zones by completing challenges.', nl: 'Een Risk-achtig stadsspel voor mijn jeugdbeweging: verover zones door opdrachten uit te voeren.' }, offset: [-1.2, 2.6, 3.4] },
   };
 
   function fail() { hero.classList.add('no3d'); loader.classList.add('done'); }
@@ -540,6 +543,25 @@ import * as THREE from 'three';
     [[.3, 0xf3ede4], [.6, 0x7fd1c7], [.88, 0xff9a4d]].forEach(([lx, col]) => g.add(mesh(new THREE.BoxGeometry(.18, .26, .02), mat(col), lx, 2.2, .9)));
     g.position.set(-.3, .3, -2.4);
     project('rowhome', g);
+  }
+
+  // Map table with team flags → Stadsspel
+  {
+    const g = new THREE.Group();
+    const wood = mat(0x7a4f35);
+    g.add(mesh(new THREE.BoxGeometry(2.0, .1, 1.3), wood, 0, .7, 0));
+    [[-.9, -.55], [.9, -.55], [-.9, .55], [.9, .55]].forEach(([x, z]) => g.add(mesh(new THREE.BoxGeometry(.1, .7, .1), wood, x, .35, z)));
+    const paper = new THREE.MeshStandardMaterial({ color: 0xe9dba9, roughness: 1 });
+    const map = mesh(new THREE.PlaneGeometry(1.84, 1.09), paper, 0, .756, 0);
+    map.rotation.x = -Math.PI / 2; map.castShadow = false; g.add(map);
+    new THREE.TextureLoader().load('stadsspel-map.webp', img => { img.colorSpace = THREE.SRGBColorSpace; paper.map = img; paper.color.set(0xffffff); paper.needsUpdate = true; });
+    [[.32, -.3, 0xd9534f], [-.5, .28, 0x4a8fd9]].forEach(([x, z, col]) => {
+      g.add(mesh(new THREE.CylinderGeometry(.02, .02, .6, 6), mat(0x2b2638), x, 1.05, z));
+      g.add(mesh(new THREE.BoxGeometry(.3, .19, .02), mat(col, { emissive: col, emissiveIntensity: .25 }), x + .16, 1.24, z));
+      g.add(mesh(new THREE.CylinderGeometry(.07, .07, .03, 10), mat(col), x, .77, z));
+    });
+    g.position.set(-2.3, .3, 3.0); g.rotation.y = .35;
+    project('stad', g);
   }
 
   // Sky: stars + a few drifting fireflies
